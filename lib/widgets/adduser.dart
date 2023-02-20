@@ -232,7 +232,7 @@ class AddUser extends StatelessWidget {
                   child: Consumer<ApiCalls>(
                     builder: (context, validation, child) {
                       return ListView.separated(
-                        physics: NeverScrollableScrollPhysics(),
+                        physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         separatorBuilder: (context, mainindex) {
                           return Divider(
@@ -279,20 +279,7 @@ class AddUser extends StatelessWidget {
                                                     .subcat[subindex]
                                                     .id);
                                                 print(value.selectedCatId);
-                                                if (val == null &&
-                                                    value.selectedCatId
-                                                        .contains(value
-                                                            .categorieModel!
-                                                            .data[mainindex]
-                                                            .subcat[subindex]
-                                                            .id)) {
-                                                  scaffoldKey.showSnackBar(
-                                                    const SnackBar(
-                                                        content: Text(
-                                                            'please enter amount')),
-                                                  );
-                                                }
-                                                value.notifyListeners();
+
                                                 //value.updateId(subindex);
                                               },
                                               title: Text(value
@@ -328,7 +315,6 @@ class AddUser extends StatelessWidget {
                                                   ),
                                                 ),
                                                 controller: controller,
-                                                onChanged: (val) {},
                                                 cursorColor: Colors.grey),
                                           ],
                                         );
