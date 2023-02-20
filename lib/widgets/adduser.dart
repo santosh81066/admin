@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -5,139 +7,430 @@ import 'package:purohithulu_admin/widgets/text_widget.dart';
 
 import '../controller/apicalls.dart';
 import '../controller/fluterr_functions.dart';
+
 import 'button.dart';
 import 'insertadhar.dart';
-import 'insertpan.dart';
+import 'insertprofile.dart';
 
 class AddUser extends StatelessWidget {
-  const AddUser(
-      {Key? key,
-      this.mobileNo,
-      this.userName,
-      this.languages,
-      this.adhar,
-      this.adharId,
-      this.languagesHint,
-      this.mobileHint,
-      this.userNameHint,
-      this.pan,
-      this.panId,
-      this.buttonName,
-      this.scaffoldMessengerKey})
-      : super(key: key);
+  const AddUser({
+    Key? key,
+    this.mobileNo,
+    this.userName,
+    this.languages,
+    this.adhar,
+    this.adharId,
+    this.languagesHint,
+    this.mobileHint,
+    this.userNameHint,
+    this.profilepic,
+    this.panId,
+    this.buttonName,
+    this.scaffoldMessengerKey,
+    this.description,
+  }) : super(key: key);
   final TextEditingController? mobileNo;
   final TextEditingController? userName;
   final TextEditingController? languages;
   final TextEditingController? adhar;
-  final TextEditingController? pan;
+  final TextEditingController? profilepic;
+  final TextEditingController? description;
   final String? panId;
   final String? adharId;
   final String? mobileHint;
   final String? userNameHint;
   final String? languagesHint;
   final String? buttonName;
+
   final GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey;
   @override
   Widget build(BuildContext context) {
+    var flutterFunctions = Provider.of<FlutterFunctions>(context);
+    var apicalls = Provider.of<ApiCalls>(context, listen: false);
     final ScaffoldMessengerState scaffoldKey =
         scaffoldMessengerKey!.currentState as ScaffoldMessengerState;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextWidget(controller: mobileNo!, hintText: mobileHint!),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextWidget(controller: userName!, hintText: userNameHint),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextWidget(controller: languages!, hintText: languagesHint),
-        ),
-        InsertAdhar(
-          adharName: adharId,
-          adharType: adhar,
-          imageIcon: () {
-            Provider.of<FlutterFunctions>(context, listen: false)
-                .addUserId(ImageSource.gallery);
-          },
-          label: 'select adhar image',
-          index: 0,
-        ),
-        InsertPan(
-          panName: panId,
-          panType: pan,
-          imageIcon: () {
-            Provider.of<FlutterFunctions>(context, listen: false)
-                .addUserId(ImageSource.gallery);
-          },
-          label: 'select pan image',
-          index: 1,
-        ),
-        const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text('Please select your services below')),
-        Consumer<ApiCalls>(
-          builder: (context, value, child) {
-            return ListView.builder(
-              physics: const ScrollPhysics(parent: null),
-              shrinkWrap: true,
-              itemBuilder: (cont, index) {
-                return CheckboxListTile(
-                  value: value.selected_box.contains(index),
-                  onChanged: (val) {
-                    // print(val);
-                    value.selectedCat(value.categories[index]['id']);
-                    value.updateId(index);
-                  },
-                  title: Text(value.categories[index]['title']),
-                );
-              },
-              itemCount: value.categories.length,
-            );
-          },
-        ),
-        Consumer<ApiCalls>(
-          builder: (context, value, child) {
-            return value.isloading == true
-                ? const CircularProgressIndicator(
-                    backgroundColor: Colors.yellow,
-                  )
-                : Button(
-                    onTap: () async {
-                      value
-                          .register(
-                              mobileNo!.text.trim(),
-                              userName!.text.trim(),
-                              adhar!.text.trim(),
-                              pan!.text.trim(),
-                              languages!.text.trim(),
-                              context)
-                          .then((response) {
-                        switch (response) {
-                          case 400:
-                            scaffoldKey.showSnackBar(SnackBar(
-                              content: Text('${value.messages}'),
-                              duration: Duration(seconds: 5),
-                            ));
-                            Navigator.pop(context);
-                            break;
-                          case 201:
-                            scaffoldKey.showSnackBar(SnackBar(
-                              content: Text('${value.messages}'),
-                              duration: Duration(seconds: 5),
-                            ));
-                            Navigator.pop(context);
-                            break;
-                        }
-                      });
+    List<List<TextEditingController>> prices = List.generate(
+      apicalls.categorieModel!.data.length,
+      (mainindex) {
+        var subcatCount =
+            apicalls.categorieModel!.data[mainindex].subcat.length;
+        return List.generate(
+          subcatCount + 1, // add one for the main category price
+          (subindex) => TextEditingController(),
+        );
+      },
+    );
+    List<TextEditingController> flattenedPrices =
+        prices.expand((prices) => prices).toList();
+    String? errorMessage =
+        apicalls.validateForm(flattenedPrices, apicalls.selectedCatId);
+
+    return Scrollbar(
+      thickness: 4,
+      radius: Radius.circular(4),
+      thumbVisibility: true,
+      trackVisibility: true,
+      child: SingleChildScrollView(
+        child: Form(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: mobileHint,
+                      labelStyle: TextStyle(color: Colors.grey),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                    ),
+                    controller: mobileNo!,
+                    validator: (validator) {
+                      final RegExp phoneRegex = RegExp(r'^\+?\d{10,12}$');
+                      if (!phoneRegex.hasMatch(validator!)) {
+                        return 'Please enter a valid phone number';
+                      }
+                      if (validator == null || validator.isEmpty) {
+                        return "please enter the mobile no";
+                      }
+                      return null;
                     },
-                    buttonname: buttonName,
+                    cursorColor: Colors.grey),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: userNameHint,
+                      labelStyle: TextStyle(color: Colors.grey),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                    ),
+                    controller: userName!,
+                    validator: (validator) {
+                      if (validator == null || validator.isEmpty) {
+                        return "please enter the username";
+                      }
+                      return null;
+                    },
+                    cursorColor: Colors.grey),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: languagesHint,
+                      labelStyle: TextStyle(color: Colors.grey),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                    ),
+                    controller: languages!,
+                    validator: (validator) {
+                      if (validator == null || validator.isEmpty) {
+                        return "please enter languages";
+                      }
+                      return null;
+                    },
+                    cursorColor: Colors.grey),
+              ),
+              flutterFunctions.imageFileList!.isNotEmpty
+                  ? SizedBox(
+                      width: 30,
+                      child: Image.file(
+                          File(flutterFunctions.imageFileList![0].path)))
+                  : TextButton.icon(
+                      onPressed: () {
+                        Provider.of<FlutterFunctions>(context, listen: false)
+                            .onImageButtonPress(ImageSource.gallery);
+                      },
+                      icon: const Icon(Icons.image),
+                      label: Text('select adhar image')),
+              flutterFunctions.imageFileList!.isNotEmpty
+                  ? TextButton(
+                      onPressed: () {
+                        Provider.of<FlutterFunctions>(context, listen: false)
+                            .onImageButtonPress(ImageSource.gallery);
+                      },
+                      child: const Text("Change Icon"))
+                  : Container(),
+              Consumer<FlutterFunctions>(
+                builder: (context, value, child) {
+                  return value.imageFileList!.isEmpty
+                      ? Container()
+                      : InsertProfile(
+                          imageIcon: () {
+                            value.onImageButtonPress(ImageSource.gallery);
+                          },
+                          label: 'select profile pic',
+                          index: 1,
+                        );
+                },
+              ),
+              TextFormField(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: ' your expirience',
+                    labelStyle: TextStyle(color: Colors.grey),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                  ),
+                  maxLines: 3,
+                  keyboardType: TextInputType.multiline,
+                  controller: description,
+                  validator: (validator) {
+                    if (validator == null || validator.isEmpty) {
+                      return "please enter expirience";
+                    }
+                    return null;
+                  },
+                  cursorColor: Colors.grey),
+              Consumer<ApiCalls>(
+                builder: (context, value, child) {
+                  return DropdownButton<String>(
+                    elevation: 16,
+                    isExpanded: true,
+                    hint: Text('please select location'),
+                    items: value.location == null
+                        ? []
+                        : value.location!.data.map((v) {
+                            return DropdownMenuItem<String>(
+                                onTap: () {
+                                  value.locationId = v.id;
+                                },
+                                value: v.location,
+                                child: Text(v.location));
+                          }).toList(),
+                    onChanged: (val) {
+                      value.updatesubcat(val!);
+                    },
+                    value: value.sub,
                   );
-          },
-        )
-      ],
+                },
+              ),
+              TextFormField(
+                validator: (validator) {
+                  if (apicalls.locationId == null) {
+                    return 'Please select a location';
+                  }
+                  return null;
+                },
+              ),
+              const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Please select your services below')),
+              Consumer<ApiCalls>(builder: (context, value, child) {
+                //print(value.categories);
+                return Flexible(
+                  flex: 1,
+                  child: Consumer<ApiCalls>(
+                    builder: (context, validation, child) {
+                      return ListView.separated(
+                        physics: NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        separatorBuilder: (context, mainindex) {
+                          return Divider(
+                            thickness: 3,
+                            color: Colors.yellowAccent,
+                          );
+                        },
+                        itemCount: value.categorieModel!.data.length,
+                        itemBuilder: (cont, mainindex) {
+                          //print("$price:$index");
+                          //price.add(TextEditingController());
+                          TextEditingController controller1 =
+                              prices[mainindex].isNotEmpty
+                                  ? prices[mainindex][0]
+                                  : TextEditingController();
+
+                          return value.categorieModel!.data[mainindex].subcat
+                                  .isNotEmpty
+                              ? ExpansionTile(
+                                  title: Text(value
+                                      .categorieModel!.data[mainindex].title),
+                                  children: [
+                                    ListView.builder(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      itemBuilder: (contex, subindex) {
+                                        TextEditingController controller =
+                                            prices[mainindex][subindex];
+                                        //print("$price:$index");
+                                        return Column(
+                                          children: [
+                                            CheckboxListTile(
+                                              value: value.selectedCatId
+                                                  .contains(value
+                                                      .categorieModel!
+                                                      .data[mainindex]
+                                                      .subcat[subindex]
+                                                      .id),
+                                              onChanged: (val) {
+                                                value.selectedCat(value
+                                                    .categorieModel!
+                                                    .data[mainindex]
+                                                    .subcat[subindex]
+                                                    .id);
+                                                print(value.selectedCatId);
+                                                if (val == null &&
+                                                    value.selectedCatId
+                                                        .contains(value
+                                                            .categorieModel!
+                                                            .data[mainindex]
+                                                            .subcat[subindex]
+                                                            .id)) {
+                                                  scaffoldKey.showSnackBar(
+                                                    const SnackBar(
+                                                        content: Text(
+                                                            'please enter amount')),
+                                                  );
+                                                }
+                                                value.notifyListeners();
+                                                //value.updateId(subindex);
+                                              },
+                                              title: Text(value
+                                                  .categorieModel!
+                                                  .data[mainindex]
+                                                  .subcat[subindex]
+                                                  .title),
+                                            ),
+                                            TextFormField(
+                                                validator: (validator) {
+                                                  if (validator == null ||
+                                                      validator.isEmpty) {
+                                                    if (value.selectedCatId
+                                                        .contains(value
+                                                            .categorieModel!
+                                                            .data[mainindex]
+                                                            .subcat[subindex]
+                                                            .id)) {
+                                                      return "please enter the price";
+                                                    }
+                                                  }
+                                                  return null;
+                                                },
+                                                decoration: InputDecoration(
+                                                  hintText:
+                                                      "please enter ${value.categorieModel!.data[mainindex].subcat[subindex].title} price",
+                                                  labelStyle: TextStyle(
+                                                      color: Colors.grey),
+                                                  focusedBorder:
+                                                      const OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Colors.grey),
+                                                  ),
+                                                ),
+                                                controller: controller,
+                                                onChanged: (val) {},
+                                                cursorColor: Colors.grey),
+                                          ],
+                                        );
+                                      },
+                                      itemCount: apicalls.categorieModel!
+                                          .data[mainindex].subcat.length,
+                                    )
+                                  ],
+                                )
+                              : Column(
+                                  children: [
+                                    CheckboxListTile(
+                                      value: value.selectedCatId.contains(value
+                                          .categorieModel!.data[mainindex].id),
+                                      onChanged: (val) {
+                                        value.selectedCat(value.categorieModel!
+                                            .data[mainindex].id);
+                                        print(
+                                            "from on change:${value.selectedCatId}");
+
+                                        value.updateId(mainindex);
+                                      },
+                                      title: Text(value.categorieModel!
+                                          .data[mainindex].title),
+                                    ),
+                                    TextFormField(
+                                      validator: (validator) {
+                                        if (validator == null ||
+                                            validator.isEmpty) {
+                                          if (value.selectedCatId.contains(value
+                                              .categorieModel!
+                                              .data[mainindex]
+                                              .id)) {
+                                            return "please enter the price";
+                                          }
+                                        }
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        hintText:
+                                            "please enter ${value.categorieModel!.data[mainindex].title} price",
+                                        labelStyle:
+                                            TextStyle(color: Colors.grey),
+                                        focusedBorder: const OutlineInputBorder(
+                                          borderSide:
+                                              BorderSide(color: Colors.grey),
+                                        ),
+                                      ),
+                                      cursorColor: Colors.grey,
+                                      controller: controller1,
+                                    ),
+                                  ],
+                                );
+                        },
+                      );
+                    },
+                  ),
+                );
+              }),
+              Consumer<ApiCalls>(
+                builder: (context, value, child) {
+                  // print(value.isloading);
+                  return value.isloading == false
+                      ? Button(
+                          onTap: () async {
+                            if (Form.of(context).validate()) {
+                              await value.register(
+                                "+91${mobileNo!.text.trim()}",
+                                adhar!.text.trim(),
+                                profilepic!.text.trim(),
+                                description!.text.trim(),
+                                languages!.text.trim(),
+                                userName!.text.trim(),
+                                context,
+                                prices,
+                              );
+
+                              scaffoldKey.showSnackBar(SnackBar(
+                                content: Text('${value.messages}'),
+                                duration: Duration(seconds: 5),
+                              ));
+                            }
+                          },
+                          buttonname: buttonName,
+                        )
+                      : const CircularProgressIndicator(
+                          backgroundColor: Colors.yellow,
+                        );
+                },
+              ),
+              TextFormField(
+                validator: (validator) {
+                  if (apicalls.selectedCatId.isEmpty) {
+                    return 'Please select atleast one service';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

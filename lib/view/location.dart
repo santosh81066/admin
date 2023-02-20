@@ -17,13 +17,6 @@ class Location extends StatefulWidget {
 
 class _LocationState extends State<Location> {
   @override
-  void initState() {
-    Provider.of<ApiCalls>(context, listen: false).getLocation(context);
-    // TODO: implement initState
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     TextEditingController locationctrl = TextEditingController();
     final ScaffoldMessengerState scaffoldKey =
@@ -57,79 +50,10 @@ class _LocationState extends State<Location> {
                                     duration: Duration(seconds: 5),
                                   ));
                                 }
-                                // value
-                                //     .adminLogin(controller.text.trim(),
-                                //         password.text.trim())
-                                //     .then((response) {
-                                //   print(value.messages);
-                                //   switch (response) {
-                                //     case 401:
-                                //       scaffoldKey.showSnackBar(SnackBar(
-                                //         content: Text('${value.messages}'),
-                                //         duration: Duration(seconds: 5),
-                                //       ));
-                                //       break;
-                                //     case 201:
-                                //       scaffoldKey.showSnackBar(SnackBar(
-                                //         content: Text('${value.messages}'),
-                                //         duration: Duration(seconds: 5),
-                                //       ));
-                                //   }
-                                // });
                               },
                       );
               },
             ),
-            Consumer<ApiCalls>(
-              builder: (context, value, child) {
-                return Column(
-                  children: [
-                    DropdownButton<String>(
-                      elevation: 16,
-                      isExpanded: true,
-                      hint: Text('please select location'),
-                      items: value.location == null
-                          ? []
-                          : value.location!.data.map((v) {
-                              return DropdownMenuItem<String>(
-                                  onTap: () {
-                                    value.locationId = v.id;
-                                  },
-                                  value: v.location,
-                                  child: Text(v.location));
-                            }).toList(),
-                      onChanged: (val) {
-                        //print(cat.text);
-                        value.sub = val;
-                        value.notifyListeners();
-                        print(value.sub);
-                      },
-                      value: value.sub,
-                    ),
-                    value.isloading2 == true
-                        ? const CircularProgressIndicator()
-                        : Button(
-                            buttonname: deleteButton,
-                            onTap: value.isloading2 == true
-                                ? null
-                                : () async {
-                                    await value.deletelocation(context);
-                                    value.location!.data.removeWhere(
-                                      (v) => v.id == value.locationId,
-                                    );
-                                    value.sub = null;
-                                    if (scaffoldKey != null) {
-                                      scaffoldKey.showSnackBar(SnackBar(
-                                        content: Text(value.messages!),
-                                        duration: Duration(seconds: 5),
-                                      ));
-                                    }
-                                  },
-                          )
-                  ],
-                );
-              },
-            )
           ],
         ),
       )),

@@ -15,12 +15,15 @@ class TextWidget extends StatelessWidget {
   final String? initialvalue;
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      initialValue: initialvalue,
-      obscureText: ofsecuretext == null ? false : ofsecuretext!,
-      controller: controller,
-      decoration: InputDecoration(
-          border: const OutlineInputBorder(), hintText: hintText),
+    return Form(
+      child: TextFormField(
+        initialValue: initialvalue,
+        obscureText: ofsecuretext == null ? false : ofsecuretext!,
+        controller: controller,
+        decoration: InputDecoration(
+            border: const OutlineInputBorder(), hintText: hintText),
+        validator: (value) {},
+      ),
     );
   }
 }

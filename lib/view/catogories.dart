@@ -34,13 +34,6 @@ class _CatogoriesState extends State<Catogories> {
   TextEditingController catDetails = TextEditingController();
   TextEditingController categorytype = TextEditingController();
   String insertCategoryButton = "Insert category";
-  @override
-  void initState() {
-    Provider.of<ApiCalls>(context, listen: false).getCatogories(context);
-    //Provider.of<Category>(context, listen: false).getCatogories(context);
-    // TODO: implement initState
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,84 +44,86 @@ class _CatogoriesState extends State<Catogories> {
     return Scaffold(
       appBar: AppBar(),
       drawer: const AppDrawer(),
-      body: Column(children: [
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Consumer<ApiCalls>(
+      body: SingleChildScrollView(
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.all(5.0),
+            child: Consumer<ApiCalls>(
+              builder: (context, value, child) {
+                //print('this is from consumer is:${value.vehicles}');
+                return DropdownButton<String>(
+                  elevation: 16,
+                  isExpanded: true,
+                  hint: Text('please select type of catogory '),
+                  items: value.categories.map((v) {
+                    return DropdownMenuItem<String>(
+                        onTap: () {
+                          parentid = v['id'];
+                          print(v['title']);
+                        },
+                        value: v['title'],
+                        child: Text(v['title']));
+                  }).toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      selectedValue = val!;
+                    });
+                  },
+                  value: selectedValue,
+                );
+              },
+            ),
+          ),
+          InsertCategory(
+            parentid: parentid.toString(),
+            categories: categories,
+            categoryName: catergoryType,
+            catergoryType: categorytype,
+            buttonName: insertCategoryButton,
+            imageIcon: () {
+              image.onImageButtonPress(ImageSource.gallery);
+            },
+            scaffoldMessengerKey: widget.scaffoldMessengerKey,
+          ),
+          Divider(
+            thickness: 2,
+          ),
+          Consumer<ApiCalls>(
             builder: (context, value, child) {
               //print('this is from consumer is:${value.vehicles}');
-              return DropdownButton<String>(
-                elevation: 16,
-                isExpanded: true,
-                hint: Text('please select type of catogory '),
-                items: value.categories.map((v) {
-                  return DropdownMenuItem<String>(
-                      onTap: () {
-                        parentid = v['id'];
-                        print(v['title']);
+              return value.categories == null
+                  ? Text('no data')
+                  : DropdownButton<String>(
+                      elevation: 16,
+                      isExpanded: true,
+                      hint: Text('please select type of catogory '),
+                      items: value.categories.map((v) {
+                        return DropdownMenuItem<String>(
+                            onTap: () {
+                              parentid = v['id'];
+                              //print(value.selectedCat);
+                            },
+                            value: v['title'],
+                            child: Text(v['title']));
+                      }).toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          editselectedValue = val!;
+                        });
+                        //print(val);
                       },
-                      value: v['title'],
-                      child: Text(v['title']));
-                }).toList(),
-                onChanged: (val) {
-                  setState(() {
-                    selectedValue = val!;
-                  });
-                },
-                value: selectedValue,
-              );
+                      value: editselectedValue,
+                    );
             },
           ),
-        ),
-        InsertCategory(
-          parentid: parentid.toString(),
-          categories: categories,
-          categoryName: catergoryType,
-          catergoryType: categorytype,
-          buttonName: insertCategoryButton,
-          imageIcon: () {
-            image.onImageButtonPress(ImageSource.gallery);
-          },
-          scaffoldMessengerKey: widget.scaffoldMessengerKey,
-        ),
-        Divider(
-          thickness: 2,
-        ),
-        Consumer<ApiCalls>(
-          builder: (context, value, child) {
-            //print('this is from consumer is:${value.vehicles}');
-            return value.categories == null
-                ? Text('no data')
-                : DropdownButton<String>(
-                    elevation: 16,
-                    isExpanded: true,
-                    hint: Text('please select type of catogory '),
-                    items: value.categories.map((v) {
-                      return DropdownMenuItem<String>(
-                          onTap: () {
-                            parentid = v['id'];
-                            //print(value.selectedCat);
-                          },
-                          value: v['title'],
-                          child: Text(v['title']));
-                    }).toList(),
-                    onChanged: (val) {
-                      setState(() {
-                        editselectedValue = val!;
-                      });
-                      //print(val);
-                    },
-                    value: editselectedValue,
-                  );
-          },
-        ),
-        Button(
-          buttonname: editCatButton,
-          onTap: () {
-            Navigator.pushNamed(context, 'EditCat', arguments: parentid);
-          },
-        )
-      ]),
+          Button(
+            buttonname: editCatButton,
+            onTap: () {
+              Navigator.pushNamed(context, 'EditCat', arguments: parentid);
+            },
+          )
+        ]),
+      ),
     );
   }
 }

@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class Categories {
   Categories({
     required this.statusCode,
@@ -29,23 +27,23 @@ class Categories {
   }
 }
 
-class Data with ChangeNotifier {
+class Data {
   Data({
-    this.id,
-    this.title,
-    this.filename,
-    this.mimetype,
-    this.directcalling,
+    required this.id,
+    required this.title,
+    required this.filename,
+    required this.mimetype,
+    required this.directcalling,
     this.parentid,
-    this.subcat,
+    required this.subcat,
   });
-  late final int? id;
-  late final String? title;
-  late final String? filename;
-  late final String? mimetype;
-  late final int? directcalling;
+  late final int id;
+  late final String title;
+  late final String filename;
+  late final String mimetype;
+  late final int directcalling;
   late final Null parentid;
-  late final List<Subcat>? subcat;
+  late final List<Subcat> subcat;
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -59,34 +57,34 @@ class Data with ChangeNotifier {
 
   Map<String, dynamic> toJson() {
     final _data = <String, dynamic>{};
-    // _data['id'] = id;
+    _data['id'] = id;
     _data['title'] = title;
     _data['filename'] = filename;
-    // _data['mimetype'] = mimetype;
+    _data['mimetype'] = mimetype;
     _data['directcalling'] = directcalling;
-    // _data['parentid'] = parentid;
-    // _data['subcat'] = subcat.map((e) => e.toJson()).toList();
+    _data['parentid'] = parentid;
+    _data['subcat'] = subcat.map((e) => e.toJson()).toList();
     return _data;
   }
 }
 
-class Subcat with ChangeNotifier {
+class Subcat {
   Subcat({
-    this.id,
-    this.title,
-    this.filename,
-    this.mimetype,
-    this.directcalling,
-    this.parentid,
-    this.subcat,
+    required this.id,
+    required this.title,
+    required this.filename,
+    required this.mimetype,
+    required this.directcalling,
+    required this.parentid,
+    required this.subcat,
   });
-  late final int? id;
-  late final String? title;
-  late final String? filename;
-  late final String? mimetype;
-  late final int? directcalling;
-  late final int? parentid;
-  late final List<dynamic>? subcat;
+  late final int id;
+  late final String title;
+  late final String filename;
+  late final String mimetype;
+  late final int directcalling;
+  late final int parentid;
+  late final List<dynamic> subcat;
 
   Subcat.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -100,13 +98,13 @@ class Subcat with ChangeNotifier {
 
   Map<String, dynamic> toJson() {
     final _data = <String, dynamic>{};
-    //_data['id'] = id;
+    _data['id'] = id;
     _data['title'] = title;
     _data['filename'] = filename;
-    //_data['mimetype'] = mimetype;
+    _data['mimetype'] = mimetype;
     _data['directcalling'] = directcalling;
-    //_data['parentid'] = parentid;
-    //_data['subcat'] = subcat;
+    _data['parentid'] = parentid;
+    _data['subcat'] = subcat;
     return _data;
   }
 }

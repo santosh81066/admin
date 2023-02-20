@@ -9,16 +9,16 @@ import '../controller/fluterr_functions.dart';
 class InsertAdhar extends StatelessWidget {
   const InsertAdhar(
       {super.key,
-      this.adharType,
-      this.adharName,
+      this.catergoryType,
+      this.categoryName,
       this.buttonName,
       this.imageIcon,
       this.handlerone,
       this.insertCategory,
       this.label,
       this.index});
-  final TextEditingController? adharType;
-  final String? adharName;
+  final TextEditingController? catergoryType;
+  final String? categoryName;
   final String? buttonName;
   final String? label;
   final Function? imageIcon;
@@ -36,8 +36,8 @@ class InsertAdhar extends StatelessWidget {
                 child: Padding(
               padding: EdgeInsets.all(5.0),
               child: TextWidget(
-                controller: adharType!,
-                hintText: adharName,
+                controller: catergoryType!,
+                hintText: categoryName,
               ),
             )),
             flutterFunctions.imageFileList!.isNotEmpty

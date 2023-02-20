@@ -3,11 +3,13 @@ import 'package:purohithulu_admin/controller/auth.dart';
 import 'package:purohithulu_admin/controller/fluterr_functions.dart';
 import 'package:purohithulu_admin/model/categories.dart';
 import 'package:purohithulu_admin/providers/category.dart';
+
 import 'package:purohithulu_admin/view/adminlogin.dart';
 import 'package:provider/provider.dart';
 import 'package:purohithulu_admin/view/catogories.dart';
 import 'package:purohithulu_admin/view/editcat.dart';
 import 'package:purohithulu_admin/view/location.dart';
+import 'package:purohithulu_admin/view/registeruser.dart';
 import 'package:purohithulu_admin/view/users.dart';
 import 'package:purohithulu_admin/view/viewpackage.dart';
 import 'package:purohithulu_admin/view/createPackage.dart';
@@ -35,12 +37,6 @@ class MyApp extends StatelessWidget {
             update: (context, value, previous) {
               return previous!..update(value.accessToken!);
             },
-          ),
-          ChangeNotifierProvider(
-            create: (context) => Data(),
-          ),
-          ChangeNotifierProvider(
-            create: (context) => Subcat(),
           ),
           ChangeNotifierProxyProvider<Auth, ApiCalls>(
             create: (context) => ApiCalls(),
@@ -98,6 +94,9 @@ class MyApp extends StatelessWidget {
                   scaffoldMessengerKey: scaffoldMessengerKey,
                 ),
             'location': (context) => Location(
+                  scaffoldMessengerKey: scaffoldMessengerKey,
+                ),
+            'registerUser': (context) => Register(
                   scaffoldMessengerKey: scaffoldMessengerKey,
                 ),
           },

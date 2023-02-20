@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,8 @@ import 'package:http/retry.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
+import '../model/categories.dart';
+
 class ApiCalls extends ChangeNotifier {
   String? token;
   List categories = [];
@@ -28,10 +31,40 @@ class ApiCalls extends ChangeNotifier {
   Location? location;
   List<int> selected_box = [];
   List<int> selectedCatId = [];
+  Map<int, UniqueKey> categoryKeys = {};
   int? locationId;
+  var separator = '/';
+  Categories? categorieModel;
+  String? checkboxErrorMessage;
   //Location? location;
   void updatesubcat(String cat) {
     sub = cat;
+    notifyListeners();
+  }
+
+  String? validateForm(
+      List<TextEditingController> prices, List<int> selectedCat) {
+    // Check if at least one checkbox is selected
+    if (selectedCat.isEmpty) {
+      return 'Please select at least one checkbox';
+    }
+
+    // Check if any of the selected checkboxes has an empty price
+    for (int i = 0; i < selectedCat.length; i++) {
+      if (selectedCat.length <= i || prices.length <= i) {
+        return null; // Return null to indicate that no error was found
+      }
+      if (selectedCat.contains(i) && prices[i].text.isEmpty) {
+        return 'Please enter price for selected checkbox ${i + 1}';
+      }
+    }
+    notifyListeners();
+    // Return null if no validation error is found
+    return null;
+  }
+
+  void checkboxError(String error) {
+    checkboxErrorMessage = error;
     notifyListeners();
   }
 
@@ -59,6 +92,7 @@ class ApiCalls extends ChangeNotifier {
     if (selected_box.contains(val)) {
       selected_box.remove(val);
     } else {
+      selected_box.removeWhere((element) => element == val);
       selected_box.add(val);
     }
     print(selected_box);
@@ -80,17 +114,21 @@ class ApiCalls extends ChangeNotifier {
 
   Future<void> insertCategory(
       String category, BuildContext context, String parentid) async {
-    print("insert:$calling");
     var flutterFunctions =
         Provider.of<FlutterFunctions>(context, listen: false);
+
     var isCalling = calling == false ? 0 : 1;
     var data = {
       "categorytype": category,
       "filename": category,
       "calling": isCalling
     };
-    var url = PurohitApi().baseUrl + PurohitApi().insertcategory + parentid;
+
+    var url = PurohitApi().baseUrl +
+        PurohitApi().insertcategory +
+        (parentid == "null" ? '' : parentid);
     Map<String, String> obj = {"attributes": json.encode(data).toString()};
+    print("insert:$url");
     try {
       loading();
       final client = RetryClient(
@@ -185,11 +223,10 @@ class ApiCalls extends ChangeNotifier {
           'Content-Type': 'application/json; charset=UTF-8',
         },
       );
-      categoryTypes = json.decode(response.body);
-      if (categoryTypes!['data'] != null) {
-        categories = categoryTypes!['data'];
-      }
-      //print(categoryTypes);
+      Map<String, dynamic> categoryTypes = json.decode(response.body);
+
+      categorieModel = Categories.fromJson(categoryTypes);
+      print(categoryTypes);
       notifyListeners();
     } catch (e) {
       print(e);
@@ -267,7 +304,7 @@ class ApiCalls extends ChangeNotifier {
       if (user!['data'] != null) {
         users = user!['data'];
       }
-
+      print(users);
       notifyListeners();
     } catch (e) {
       print(e);
@@ -402,27 +439,58 @@ class ApiCalls extends ChangeNotifier {
     }
   }
 
-  Future register(String mobileno, String username, String adhar, String pan,
-      String languages, BuildContext context) async {
+  Future register(
+      String mobileno,
+      String adhar,
+      String profilepic,
+      String expirience,
+      String languages,
+      String userName,
+      BuildContext context,
+      List price) async {
+    print("from api calls register:${price.map((e) => e).toList()}");
     var flutterFunctions =
         Provider.of<FlutterFunctions>(context, listen: false);
+    var catIdString = selectedCatId.isNotEmpty ? selectedCatId.join(",") : '';
+    String randomLetters = generateRandomLetters(10);
+
     var data = {
-      "username": username,
       "mobileno": mobileno,
       "role": "p",
+      "username": userName,
       "userstatus": "0",
-      "adhar": adhar,
-      "pan": pan,
+      "adhar": "${randomLetters}_adhar",
+      "profilepic": "${randomLetters}_profilepic",
+      "expirience": expirience,
       "lang": languages,
-      "isonline": "F"
+      "isonline": "0",
+      "location": locationId
     };
+
+    List<List<String>> priceList = [];
+    for (var i = 0; i < price.length; i++) {
+      List<String> subcatPrices = [];
+      for (var j = 0; j < price[i].length; j++) {
+        String text = price[i][j].text;
+
+        if (text.isNotEmpty) {
+          subcatPrices.add(text);
+        }
+        // Do something with the text value
+      }
+      priceList.add(subcatPrices);
+    }
+    String prices = priceList.map((e) => e.join(',')).join(',');
+    prices = prices.replaceAll(RegExp(r',+$'), ''); // remove trailing commas
+    prices = prices.replaceAll(RegExp(r',,'), ','); // remove trailing commas
+
     var url =
-        PurohitApi().baseUrl + PurohitApi().register + selectedCatId.join(',');
+        "${PurohitApi().baseUrl}${PurohitApi().register}$catIdString$separator$prices";
     Map<String, String> obj = {"attributes": json.encode(data).toString()};
-    print(url);
+    print('Price for category: $url');
     try {
       loading();
-
+      //print(isloading);
       var response = http.MultipartRequest('POST', Uri.parse(url))
         ..files.add(await http.MultipartFile.fromPath(
             "imagefile[]", flutterFunctions.imageFileList![0].path,
@@ -433,23 +501,23 @@ class ApiCalls extends ChangeNotifier {
         ..fields.addAll(obj);
       final send = await response.send();
       final res = await http.Response.fromStream(send);
-      var userDetails = json.decode(res.body);
-      print(userDetails);
-      switch (res.statusCode) {
-        case 201:
-          messages = userDetails['messages'].toString();
-          loading();
-          break;
-        case 500:
-          messages = userDetails['messages'].toString();
-          loading();
-          break;
-        case 400:
-          messages = userDetails['messages'].toString();
-          loading();
-          break;
+      var statuscode = res.statusCode;
+      loading();
+      //print('mobileno:$mobileno,');
+      user = json.decode(res.body);
+      // print(response.fields);
+
+      // print(isloading);
+      if (user!['data'] != null) {
+        users = user!['data'];
+        // var firebaseresponse = await http.post(Uri.parse(firebaseUrl),
+        //     body: json.encode({'status': apiCalls.users![0]['isonline']}));
+        // var firebaseDetails = json.decode(firebaseresponse.body);
       }
-      return res.statusCode;
+      messages = user!['messages'].toString();
+      print(messages);
+      notifyListeners();
+      return statuscode;
     } catch (e) {
       print(e);
     }
@@ -480,7 +548,6 @@ class ApiCalls extends ChangeNotifier {
       print('from get location $token');
       var response = await client.get(
         Uri.parse(url),
-       
       );
       Map<String, dynamic> locationBody = json.decode(response.body);
       location = Location.fromJson(locationBody);
@@ -567,5 +634,46 @@ class ApiCalls extends ChangeNotifier {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<http.Response> fetchImage(
+      BuildContext context, String image, int id) async {
+    final url =
+        "${PurohitApi().baseUrl}${PurohitApi().userIdCard}$image${PurohitApi().userid}$id";
+    try {
+      final client = RetryClient(
+        http.Client(),
+        retries: 4,
+        when: (response) {
+          return response.statusCode == 401 ? true : false;
+        },
+        onRetry: (req, res, retryCount) async {
+          if (retryCount == 0 && res?.statusCode == 401) {
+            var accessToken = await Provider.of<Auth>(context, listen: false)
+                .restoreAccessToken();
+            req.headers['Authorization'] = accessToken;
+          }
+        },
+      );
+
+      final response = await client.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': token!,
+        },
+      );
+
+      notifyListeners();
+      return response;
+    } catch (e) {
+      print(e);
+      throw Exception('Failed to fetch image');
+    }
+  }
+
+  String generateRandomLetters(int length) {
+    var random = Random();
+    var letters = List.generate(length, (_) => random.nextInt(26) + 97);
+    return String.fromCharCodes(letters);
   }
 }
