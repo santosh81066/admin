@@ -41,7 +41,7 @@ class Data {
   late final String title;
   late final String filename;
   late final String mimetype;
-  late final int directcalling;
+  late final String directcalling;
   late final Null parentid;
   late final List<Subcat> subcat;
 
@@ -50,7 +50,7 @@ class Data {
     title = json['title'];
     filename = json['filename'];
     mimetype = json['mimetype'];
-    directcalling = json['directcalling'];
+    directcalling = json['cattype'];
     parentid = null;
     subcat = List.from(json['subcat']).map((e) => Subcat.fromJson(e)).toList();
   }
@@ -82,7 +82,7 @@ class Subcat {
   late final String title;
   late final String filename;
   late final String mimetype;
-  late final int directcalling;
+  late final String directcalling;
   late final int parentid;
   late final List<dynamic> subcat;
 
@@ -91,7 +91,7 @@ class Subcat {
     title = json['title'];
     filename = json['filename'];
     mimetype = json['mimetype'];
-    directcalling = json['directcalling'];
+    directcalling = json['cattype'];
     parentid = json['parentid'];
     subcat = List.castFrom<dynamic, dynamic>(json['subcat']);
   }

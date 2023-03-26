@@ -92,7 +92,7 @@ class AddUser extends StatelessWidget {
                       if (!phoneRegex.hasMatch(validator!)) {
                         return 'Please enter a valid phone number';
                       }
-                      if (validator == null || validator.isEmpty) {
+                      if (validator.isEmpty) {
                         return "please enter the mobile no";
                       }
                       return null;

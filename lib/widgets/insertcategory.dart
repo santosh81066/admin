@@ -66,21 +66,19 @@ class InsertCategory extends StatelessWidget {
                     },
                     child: Text("Change Icon"))
                 : Container(),
-            parentid != null
-                ? Container()
-                : AnimatedSwitch(
-                    value: false,
-                    onChanged: (bool state) {
-                      apicalls.calling = state;
-                      print(apicalls.calling);
-                      //print(apiCalls.messages);
-                    },
-                    width: MediaQuery.of(context).size.width * 1 / 4,
-                    textOn: "Is Calling",
-                    textOff: "No Calling",
-                    textStyle:
-                        const TextStyle(color: Colors.white, fontSize: 20),
-                  )
+            DropdownButton<String>(
+              value: context.watch<FlutterFunctions>().selectedValue,
+              onChanged: (String? newValue) {
+                context.read<FlutterFunctions>().setSelectedValue(newValue!);
+              },
+              items: <String>['calling', 'booking', 'events']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
           ],
         ),
         Consumer<ApiCalls>(
@@ -90,8 +88,8 @@ class InsertCategory extends StatelessWidget {
                 : Button(
                     onTap: () async {
                       await value
-                          .insertCategory(
-                              catergoryType!.text.trim(), context, newparentid)
+                          .insertCategory(catergoryType!.text.trim(), context,
+                              newparentid, flutterFunctions.selectedValue)
                           .then((value) => scaffoldKey.showSnackBar(SnackBar(
                                 content: Text('${apicalls.messages}'),
                                 duration: Duration(seconds: 5),

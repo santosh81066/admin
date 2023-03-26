@@ -89,17 +89,17 @@ class _ViewPackageState extends State<ViewPackage> {
                                 child: ListTile(
                                   leading: CircleAvatar(
                                     backgroundImage: NetworkImage(
-                                        "${PurohitApi().baseUrl}${PurohitApi().packageId}${apiCalls.packages![index]['id']}${PurohitApi().imageId}${apiCalls.packages![index]['vehicleid']}",
+                                        "${PurohitApi().baseUrl}${PurohitApi().packageId}${apiCalls.packages![index]['id']}${PurohitApi().imageId}${apiCalls.packages![index]['catid']}",
                                         headers: {
                                           "Authorization": apiCalls.token!
                                         }),
                                   ),
                                   title: Text(
-                                      apiCalls.packages![index]['packageName']),
+                                      apiCalls.packages![index]['eventName']),
                                   trailing: Text(
                                       'amount: ${apiCalls.packages![index]['amount'].toString()} Rs'),
                                   subtitle: Text(
-                                      'minutes: ${apiCalls.packages![index]['hours'].toString()}'),
+                                      'address: ${apiCalls.packages![index]['address'].toString()}'),
                                 ),
                               ),
                             ],

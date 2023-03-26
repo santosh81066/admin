@@ -80,15 +80,20 @@ class _EditCatState extends State<EditCat> {
 
   @override
   Widget build(BuildContext context) {
+    var apicalls = Provider.of<ApiCalls>(context);
     final ScaffoldMessengerState scaffoldKey =
         widget.scaffoldMessengerKey!.currentState as ScaffoldMessengerState;
     final catId = ModalRoute.of(context)!.settings.arguments as int;
-    final loadedProduct = Provider.of<ApiCalls>(
-      context,
-    ).findById(catId);
+    // final loadedProduct = Provider.of<ApiCalls>(
+    //   context,
+    // ).findById(catId);
     TextEditingController cat = TextEditingController();
-    List subcat = loadedProduct['subcat'];
-    print(subcat);
+    List<Data> categories = [];
+
+    categories =
+        apicalls.categorieModel!.data.where((cat) => cat.id == catId).toList();
+
+    print(categories);
     int id = catId;
     var image = Provider.of<FlutterFunctions>(context, listen: false);
     var subcategory = Provider.of<Category>(context);
@@ -96,7 +101,7 @@ class _EditCatState extends State<EditCat> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(loadedProduct['title']),
+        title: Text(categories[0].title),
         actions: [
           IconButton(
             icon: Icon(Icons.save),
@@ -110,7 +115,7 @@ class _EditCatState extends State<EditCat> {
           child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          loadedProduct['subcat'] == null
+          categories[0].subcat == null
               ? Container()
               : Consumer<ApiCalls>(
                   builder: (context, value, child) {
@@ -120,10 +125,10 @@ class _EditCatState extends State<EditCat> {
                           elevation: 16,
                           isExpanded: true,
                           hint: Text('please select sub category'),
-                          items: subcat.map((v) {
+                          items: categories[0].subcat.map((v) {
                             return DropdownMenuItem<String>(
                                 onTap: () {
-                                  subcategory.subcat = v['id'];
+                                  subcategory.subcat = v.id;
                                   // value.subcat = v.id;
                                   // _editedSubCategory = Provider.of<Category>(
                                   //         context,
@@ -135,10 +140,10 @@ class _EditCatState extends State<EditCat> {
                                   //   'mimetype': v.mimetype!,
                                   //   'directcalling': v.directcalling.toString()
                                   // };
-                                  print(v['title']);
+                                  print(v.title);
                                 },
-                                value: v['title'],
-                                child: Text(v['title']));
+                                value: v.title,
+                                child: Text(v.title));
                           }).toList(),
                           onChanged: (val) {
                             //print(cat.text);

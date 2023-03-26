@@ -33,12 +33,18 @@ class ApiCalls extends ChangeNotifier {
   List<int> selectedCatId = [];
   Map<int, UniqueKey> categoryKeys = {};
   int? locationId;
+  String? selectedValue;
   var separator = '/';
   Categories? categorieModel;
   String? checkboxErrorMessage;
   //Location? location;
   void updatesubcat(String cat) {
     sub = cat;
+    notifyListeners();
+  }
+
+  void dropdownSelectedValue(String value) {
+    selectedValue = value;
     notifyListeners();
   }
 
@@ -73,10 +79,8 @@ class ApiCalls extends ChangeNotifier {
   }
 
   findById(int id) {
-    return categories.firstWhere((cat) => cat['id'] == id);
+    return categorieModel!.data.firstWhere((cat) => cat.id == id);
   }
-
-  bool calling = false;
 
   void selectedCat(int val) {
     if (selectedCatId.contains(val)) {
@@ -112,16 +116,15 @@ class ApiCalls extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> insertCategory(
-      String category, BuildContext context, String parentid) async {
+  Future<void> insertCategory(String category, BuildContext context,
+      String parentid, String categorytype) async {
     var flutterFunctions =
         Provider.of<FlutterFunctions>(context, listen: false);
-
-    var isCalling = calling == false ? 0 : 1;
+    final cattype = categorytype[0];
     var data = {
       "categorytype": category,
       "filename": category,
-      "calling": isCalling
+      "cattype": cattype,
     };
 
     var url = PurohitApi().baseUrl +
@@ -162,8 +165,15 @@ class ApiCalls extends ChangeNotifier {
     }
   }
 
-  Future<void> createPackage(int ctypeId, String amount, String noOfHours,
-      BuildContext context, String packageName) async {
+  Future<void> createEvent(
+      {int? ctypeId,
+      String? amount,
+      String? dateAndTime,
+      String? eventName,
+      String? address,
+      String? description,
+      BuildContext? context}) async {
+    loading();
     final url =
         '${PurohitApi().baseUrl}${PurohitApi().createPackage}${ctypeId.toString()}';
     var response = await http.post(Uri.parse(url),
@@ -173,24 +183,46 @@ class ApiCalls extends ChangeNotifier {
         },
         body: json.encode({
           "amount": amount,
-          "noOfHours": noOfHours,
-          "packageName": packageName
+          "dateandtime": dateAndTime,
+          "eventName": eventName,
+          "address": address,
+          "description": description
         }));
     print(url);
     var userDetails = json.decode(response.body);
+    print(userDetails);
     switch (response.statusCode) {
       case 201:
-        messages = userDetails['messages'].toString();
+        showDialog(
+          context: context!,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Success'),
+              content: const Text('Event has created sucessfully'),
+              actions: [
+                ElevatedButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    //Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        loading();
         break;
       case 500:
         messages = userDetails['messages'].toString();
+        loading();
         break;
       case 401:
         Future.delayed(Duration.zero).then((value) {
-          Provider.of<Auth>(context).logout();
+          Provider.of<Auth>(context!).logout();
           messages = userDetails['messages'].toString();
         });
-
+        loading();
         break;
     }
   }
@@ -226,7 +258,7 @@ class ApiCalls extends ChangeNotifier {
       Map<String, dynamic> categoryTypes = json.decode(response.body);
 
       categorieModel = Categories.fromJson(categoryTypes);
-      print(categoryTypes);
+      print(categorieModel!.data[0].title);
       notifyListeners();
     } catch (e) {
       print(e);
@@ -266,7 +298,7 @@ class ApiCalls extends ChangeNotifier {
       if (package!['data'] != null) {
         packages = package!['data'];
       }
-      print(packages);
+      //print(packages);
       notifyListeners();
     } catch (e) {
       print(e);
@@ -304,7 +336,7 @@ class ApiCalls extends ChangeNotifier {
       if (user!['data'] != null) {
         users = user!['data'];
       }
-      print(users);
+      //print(users![0]['adhar']);
       notifyListeners();
     } catch (e) {
       print(e);

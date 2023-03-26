@@ -23,12 +23,14 @@ class _WelcomescreenState extends State<Welcomescreen> {
   TextEditingController price = TextEditingController();
   TextEditingController noOfMinutes = TextEditingController();
   TextEditingController packageName = TextEditingController();
+  TextEditingController description = TextEditingController();
+  TextEditingController address = TextEditingController();
   String amt = 'please enter amount';
-  String viewButtonName = 'View packages';
-  String savePackageButton = 'save package';
+  String viewButtonName = 'View Events';
+  String savePackageButton = 'Save Event';
 
-  String noOfMin = 'No Of minutes';
-  String hintPname = 'please enter package name';
+  String noOfMin = 'Date And Time';
+  String hintPname = 'please enter Event name';
   bool isinit = true;
 
   @override
@@ -54,12 +56,12 @@ class _WelcomescreenState extends State<Welcomescreen> {
             CreatePackage(
               price: price,
               amt: amt,
-              noOfMinutes: noOfMinutes,
-              noOfMin: noOfMin,
               button: savePackageButton,
               viewButton: viewButtonName,
               packageName: packageName,
               hintPname: hintPname,
+              address: address,
+              description: description,
             ),
           ],
         ),

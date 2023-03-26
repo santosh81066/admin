@@ -16,7 +16,7 @@ class AppDrawer extends StatelessWidget {
           const Divider(),
           ListTile(
             leading: const Icon(Icons.luggage),
-            title: const Text("Packages"),
+            title: const Text("Create Event"),
             onTap: () {
               Navigator.of(context).pushNamed('createPackage');
               //Navigator.pop(context);

@@ -55,14 +55,14 @@ class _CatogoriesState extends State<Catogories> {
                   elevation: 16,
                   isExpanded: true,
                   hint: Text('please select type of catogory '),
-                  items: value.categories.map((v) {
+                  items: value.categorieModel!.data.map((v) {
                     return DropdownMenuItem<String>(
                         onTap: () {
-                          parentid = v['id'];
-                          print(v['title']);
+                          parentid = v.id;
+                          print(v.title);
                         },
-                        value: v['title'],
-                        child: Text(v['title']));
+                        value: v.title,
+                        child: Text(v.title));
                   }).toList(),
                   onChanged: (val) {
                     setState(() {
@@ -97,14 +97,14 @@ class _CatogoriesState extends State<Catogories> {
                       elevation: 16,
                       isExpanded: true,
                       hint: Text('please select type of catogory '),
-                      items: value.categories.map((v) {
+                      items: value.categorieModel!.data.map((v) {
                         return DropdownMenuItem<String>(
                             onTap: () {
-                              parentid = v['id'];
+                              parentid = v.id;
                               //print(value.selectedCat);
                             },
-                            value: v['title'],
-                            child: Text(v['title']));
+                            value: v.title,
+                            child: Text(v.title));
                       }).toList(),
                       onChanged: (val) {
                         setState(() {
