@@ -51,11 +51,21 @@ class AppDrawer extends StatelessWidget {
           ),
           const Divider(),
           ListTile(
+            leading: const Icon(Icons.exit_to_app),
+            title: const Text("Horoscope"),
+            onTap: () async {
+              //Navigator.pop(context);
+              // Navigator.of(context).pushReplacementNamed('/');
+              Navigator.of(context).pushNamed('astrology');
+            },
+          ),
+          const Divider(),
+          ListTile(
             leading: const Icon(Icons.edit),
-            title: const Text("Contact Us"),
+            title: const Text("Insert Adds"),
             onTap: () {
-              // Navigator.of(context)
-              //     .pushReplacementNamed(UserProductsScreen.routeName);
+              Navigator.pop(context);
+              Navigator.of(context).pushNamed('insert add');
             },
           ),
           const Divider(),

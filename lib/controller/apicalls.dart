@@ -1,12 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
-
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:purohithulu_admin/controller/auth.dart';
 import 'package:purohithulu_admin/model/location.dart';
+import 'package:purohithulu_admin/model/user_details.dart' as userdetails;
 import 'package:purohithulu_admin/utlis/purohitapi.dart';
 import 'package:flutter/foundation.dart';
+import 'package:purohithulu_admin/view/users.dart';
 //import 'package:purohithulu_admin/view/location.dart';
 import 'package:purohithulu_admin/widgets/insertcategory.dart';
 import 'package:purohithulu_admin/controller/fluterr_functions.dart';
@@ -36,10 +40,25 @@ class ApiCalls extends ChangeNotifier {
   String? selectedValue;
   var separator = '/';
   Categories? categorieModel;
+  userdetails.UsersDetails? userDetails;
   String? checkboxErrorMessage;
+  String? selectUser;
+  String? selectName;
   //Location? location;
   void updatesubcat(String cat) {
     sub = cat;
+    notifyListeners();
+  }
+
+  void selectUsers(String users) {
+    selectUser = users;
+
+    notifyListeners();
+  }
+
+  void onSelectName(String? name) {
+    selectName = name;
+
     notifyListeners();
   }
 
@@ -79,7 +98,7 @@ class ApiCalls extends ChangeNotifier {
   }
 
   findById(int id) {
-    return categorieModel!.data.firstWhere((cat) => cat.id == id);
+    return categorieModel!.data!.firstWhere((cat) => cat.id == id);
   }
 
   void selectedCat(int val) {
@@ -121,9 +140,10 @@ class ApiCalls extends ChangeNotifier {
     var flutterFunctions =
         Provider.of<FlutterFunctions>(context, listen: false);
     final cattype = categorytype[0];
+    String randomLetters = generateRandomLetters(10);
     var data = {
       "categorytype": category,
-      "filename": category,
+      "filename": randomLetters,
       "cattype": cattype,
     };
 
@@ -258,7 +278,7 @@ class ApiCalls extends ChangeNotifier {
       Map<String, dynamic> categoryTypes = json.decode(response.body);
 
       categorieModel = Categories.fromJson(categoryTypes);
-      print(categorieModel!.data[0].title);
+      print(categoryTypes);
       notifyListeners();
     } catch (e) {
       print(e);
@@ -331,11 +351,9 @@ class ApiCalls extends ChangeNotifier {
         headers: {'Authorization': token!},
       );
 
-      user = json.decode(response.body);
-
-      if (user!['data'] != null) {
-        users = user!['data'];
-      }
+      Map<String, dynamic> users = json.decode(response.body);
+      userDetails = userdetails.UsersDetails.fromJson(users);
+      // print(userDetails!.data![0].role);
       //print(users![0]['adhar']);
       notifyListeners();
     } catch (e) {
@@ -344,7 +362,7 @@ class ApiCalls extends ChangeNotifier {
   }
 
   Future<void> updateUser(
-      int userid, BuildContext context, String adharno, String panno) async {
+      int userid, BuildContext context, String adharno) async {
     final url = '${PurohitApi().baseUrl}${PurohitApi().updateUser}/$userid';
 
     try {
@@ -371,7 +389,9 @@ class ApiCalls extends ChangeNotifier {
             'Content-Type': 'application/json; charset=UTF-8',
             'Authorization': token!
           },
-          body: json.encode({"adharno": adharno, "panno": panno}));
+          body: json.encode({
+            "adharno": adharno,
+          }));
 
       var userDetails = json.decode(response.body);
       switch (response.statusCode) {
@@ -542,6 +562,7 @@ class ApiCalls extends ChangeNotifier {
       // print(isloading);
       if (user!['data'] != null) {
         users = user!['data'];
+        messages = user!['messages'].toString();
         // var firebaseresponse = await http.post(Uri.parse(firebaseUrl),
         //     body: json.encode({'status': apiCalls.users![0]['isonline']}));
         // var firebaseDetails = json.decode(firebaseresponse.body);
@@ -551,12 +572,13 @@ class ApiCalls extends ChangeNotifier {
       notifyListeners();
       return statuscode;
     } catch (e) {
+      messages = e.toString();
       print(e);
     }
   }
 
   Future<void> getLocation(BuildContext context) async {
-    final url = '${PurohitApi().baseUrl}${PurohitApi().getLocation}';
+    final url = '${PurohitApi().baseUrl}${PurohitApi().location}';
     try {
       final client = RetryClient(
         http.Client(),
@@ -591,7 +613,7 @@ class ApiCalls extends ChangeNotifier {
   }
 
   Future<void> insertLocation(BuildContext context, String location) async {
-    final url = '${PurohitApi().baseUrl}${PurohitApi().insertLocation}';
+    final url = '${PurohitApi().baseUrl}${PurohitApi().location}';
     try {
       loading();
       final client = RetryClient(
@@ -631,7 +653,7 @@ class ApiCalls extends ChangeNotifier {
   }
 
   Future<void> deletelocation(BuildContext context) async {
-    final url = '${PurohitApi().baseUrl}${PurohitApi().deleteLocation}';
+    final url = '${PurohitApi().baseUrl}${PurohitApi().location}';
     try {
       loading2();
       final client = RetryClient(
@@ -668,10 +690,12 @@ class ApiCalls extends ChangeNotifier {
     }
   }
 
-  Future<http.Response> fetchImage(
-      BuildContext context, String image, int id) async {
+  Future<XFile?> getprofiledp(BuildContext context, int i) async {
+    var apicalls = Provider.of<ApiCalls>(context, listen: false);
     final url =
-        "${PurohitApi().baseUrl}${PurohitApi().userIdCard}$image${PurohitApi().userid}$id";
+        "${PurohitApi().baseUrl}${PurohitApi().userIdCard}${apicalls.userDetails!.data![i].profilepic}${PurohitApi().userid}${apicalls.userDetails!.data![i].id}";
+    loading();
+    print(isloading);
     try {
       final client = RetryClient(
         http.Client(),
@@ -680,26 +704,171 @@ class ApiCalls extends ChangeNotifier {
           return response.statusCode == 401 ? true : false;
         },
         onRetry: (req, res, retryCount) async {
+          //print('retry started $token');
+
           if (retryCount == 0 && res?.statusCode == 401) {
             var accessToken = await Provider.of<Auth>(context, listen: false)
                 .restoreAccessToken();
+            // Only this block can run (once) until done
+            print('retry $accessToken');
             req.headers['Authorization'] = accessToken;
           }
         },
       );
-
-      final response = await client.get(
+      var response = await client.get(
         Uri.parse(url),
         headers: {
-          'Authorization': token!,
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': token!
         },
       );
+      //Map<String, dynamic> userResponse = json.decode(response.body);
+      final Uint8List resbytes = response.bodyBytes;
+      print("from fetchImage:${response.statusCode}");
+      //print(response.statusCode);
+      switch (response.statusCode) {
+        case 200:
+          try {
+            // Attempt to create an Image object from the image bytes
+            // final image = Image.memory(resbytes);
+            final tempDir = await getTemporaryDirectory();
+            final file = File('${tempDir.path}/${i}profile');
+            await file.writeAsBytes(resbytes);
+            final xfile = XFile(file.path);
 
-      notifyListeners();
-      return response;
+            userDetails!.data![i].profiledp = XFile(file.path);
+            loading();
+
+            //print(userDetails!.data![0].profilepic!);
+            notifyListeners();
+            return xfile;
+            // If the image was created successfully, the bytes are in a valid format
+          } catch (e) {
+            // If an error is thrown, the bytes are not in a valid format
+            print('Error decoding image bytes: $e');
+          }
+      }
+
+      // print(
+      //     "this is from getuserPic:${userDetails!.data![0].xfile!.readAsBytes()}");
     } catch (e) {
       print(e);
-      throw Exception('Failed to fetch image');
+    }
+    loading();
+    print(isloading);
+    return null;
+  }
+
+  Future<XFile?> getadhardp(BuildContext context, int i) async {
+    var apicalls = Provider.of<ApiCalls>(context, listen: false);
+    final url =
+        "${PurohitApi().baseUrl}${PurohitApi().userIdCard}${apicalls.userDetails!.data![i].adhar}${PurohitApi().userid}${apicalls.userDetails!.data![i].id}";
+    print(url);
+    loading();
+    try {
+      final client = RetryClient(
+        http.Client(),
+        retries: 4,
+        when: (response) {
+          return response.statusCode == 401 ? true : false;
+        },
+        onRetry: (req, res, retryCount) async {
+          //print('retry started $token');
+
+          if (retryCount == 0 && res?.statusCode == 401) {
+            var accessToken = await Provider.of<Auth>(context, listen: false)
+                .restoreAccessToken();
+            // Only this block can run (once) until done
+            print('retry $accessToken');
+            req.headers['Authorization'] = accessToken;
+          }
+        },
+      );
+      var response = await client.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': token!
+        },
+      );
+      //Map<String, dynamic> userResponse = json.decode(response.body);
+      final Uint8List resbytes = response.bodyBytes;
+      print("from fetchImage:${response.statusCode}");
+      print(response.statusCode);
+      switch (response.statusCode) {
+        case 200:
+          try {
+            // Attempt to create an Image object from the image bytes
+            // final image = Image.memory(resbytes);
+            final tempDir = await getTemporaryDirectory();
+            final file = File('${tempDir.path}/${i}adhar');
+            await file.writeAsBytes(resbytes);
+            final xfile = XFile(file.path);
+
+            userDetails!.data![i].adharpic = XFile(file.path);
+            loading();
+
+            //print(userDetails!.data![0].profilepic!);
+            notifyListeners();
+            return xfile;
+            // If the image was created successfully, the bytes are in a valid format
+          } catch (e) {
+            // If an error is thrown, the bytes are not in a valid format
+            print('Error decoding image bytes: $e');
+          }
+      }
+
+      // print(
+      //     "this is from getuserPic:${userDetails!.data![0].xfile!.readAsBytes()}");
+    } catch (e) {
+      print(e);
+    }
+    loading();
+    return null;
+  }
+
+  Future<void> uploadHoroscope(
+      String title, BuildContext context, String userId) async {
+    var flutterFunctions =
+        Provider.of<FlutterFunctions>(context, listen: false);
+
+    String randomLetters = generateRandomLetters(10);
+    var data = {"title": title, "filename": randomLetters, "userid": userId};
+
+    var url = PurohitApi().baseUrl + PurohitApi().horoscope;
+    Map<String, String> obj = {"attributes": json.encode(data).toString()};
+    print("insert:$url");
+    try {
+      loading();
+      final client = RetryClient(
+        http.Client(),
+        retries: 4,
+        when: (reponse) {
+          return reponse.statusCode == 401 ? true : false;
+        },
+        onRetry: (request, response, retryCount) async {
+          if (retryCount == 0 && response?.statusCode == 401) {
+            var accesstoken = await Provider.of<Auth>(context, listen: false)
+                .restoreAccessToken();
+            request.headers['Authorization'] = accesstoken;
+            print(accesstoken);
+          }
+        },
+      );
+      var response = await http.MultipartRequest('Post', Uri.parse(url))
+        ..files.add(await http.MultipartFile.fromPath(
+            "pdffile", flutterFunctions.pdfFilePath!,
+            contentType: MediaType("application", "pdf")))
+        ..headers['Authorization'] = token!
+        ..fields.addAll(obj);
+      final send = await client.send(response);
+      final res = await http.Response.fromStream(send);
+      var usrData = json.decode(res.body);
+      loading();
+      messages = usrData['messages'].toString();
+      notifyListeners();
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -707,5 +876,54 @@ class ApiCalls extends ChangeNotifier {
     var random = Random();
     var letters = List.generate(length, (_) => random.nextInt(26) + 97);
     return String.fromCharCodes(letters);
+  }
+
+  Future<int> insertAdd(String title, BuildContext context) async {
+    var flutterFunctions =
+        Provider.of<FlutterFunctions>(context, listen: false);
+    int statusCode = -1;
+    String randomLetters = generateRandomLetters(10);
+    var data = {
+      "title": title,
+      "filename": randomLetters,
+    };
+
+    var url = PurohitApi().baseUrl + PurohitApi().add;
+    Map<String, String> obj = {"attributes": json.encode(data).toString()};
+    print("insert:$url");
+    try {
+      loading();
+      final client = RetryClient(
+        http.Client(),
+        retries: 4,
+        when: (reponse) {
+          return reponse.statusCode == 401 ? true : false;
+        },
+        onRetry: (request, response, retryCount) async {
+          if (retryCount == 0 && response?.statusCode == 401) {
+            var accesstoken = await Provider.of<Auth>(context, listen: false)
+                .restoreAccessToken();
+            request.headers['Authorization'] = accesstoken;
+            print(accesstoken);
+          }
+        },
+      );
+      var response = await http.MultipartRequest('Post', Uri.parse(url))
+        ..files.add(await http.MultipartFile.fromPath(
+            "imagefile", flutterFunctions.imageFile!.path,
+            contentType: MediaType("image", "jpg")))
+        ..headers['Authorization'] = token!
+        ..fields.addAll(obj);
+      final send = await client.send(response);
+      final res = await http.Response.fromStream(send);
+      var usrData = json.decode(res.body);
+      loading();
+      print(res.body);
+      messages = usrData['messages'].toString();
+      statusCode = res.statusCode;
+    } catch (e) {
+      print(e);
+    }
+    return statusCode;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:purohithulu_admin/controller/auth.dart';
 import 'package:purohithulu_admin/controller/fluterr_functions.dart';
 import 'package:purohithulu_admin/model/categories.dart';
@@ -8,14 +9,21 @@ import 'package:purohithulu_admin/view/adminlogin.dart';
 import 'package:provider/provider.dart';
 import 'package:purohithulu_admin/view/catogories.dart';
 import 'package:purohithulu_admin/view/editcat.dart';
+import 'package:purohithulu_admin/view/insertadd.dart';
 import 'package:purohithulu_admin/view/location.dart';
 import 'package:purohithulu_admin/view/registeruser.dart';
+import 'package:purohithulu_admin/view/horoscope.dart';
 import 'package:purohithulu_admin/view/users.dart';
 import 'package:purohithulu_admin/view/viewpackage.dart';
 import 'package:purohithulu_admin/view/createPackage.dart';
 import 'controller/apicalls.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   runApp(const MyApp());
 }
 
@@ -71,7 +79,7 @@ class MyApp extends StatelessWidget {
                     future: value.tryAutoLogin(),
                     builder: (context, snapshot) =>
                         snapshot.connectionState == ConnectionState.waiting
-                            ? CircularProgressIndicator(
+                            ? const CircularProgressIndicator(
                                 backgroundColor: Colors.red,
                               )
                             : Adminlogin(
@@ -99,6 +107,8 @@ class MyApp extends StatelessWidget {
             'registerUser': (context) => Register(
                   scaffoldMessengerKey: scaffoldMessengerKey,
                 ),
+            'astrology': (context) => const FileUploadScreen(),
+            'insert add': (context) => const InsertAdd()
           },
         ));
   }

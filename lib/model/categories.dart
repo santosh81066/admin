@@ -1,110 +1,67 @@
 class Categories {
+  final int? statusCode;
+  final bool? success;
+  final List<dynamic>? messages;
+  final List<Data>? data;
+
   Categories({
-    required this.statusCode,
-    required this.success,
-    required this.messages,
-    required this.data,
+    this.statusCode,
+    this.success,
+    this.messages,
+    this.data,
   });
-  late final int statusCode;
-  late final bool success;
-  late final List<dynamic> messages;
-  late final List<Data> data;
 
-  Categories.fromJson(Map<String, dynamic> json) {
-    statusCode = json['statusCode'];
-    success = json['success'];
-    messages = List.castFrom<dynamic, dynamic>(json['messages']);
-    data = List.from(json['data']).map((e) => Data.fromJson(e)).toList();
-  }
+  Categories.fromJson(Map<String, dynamic> json)
+      : statusCode = json['statusCode'] as int?,
+        success = json['success'] as bool?,
+        messages = json['messages'] as List?,
+        data = (json['data'] as List?)
+            ?.map((dynamic e) => Data.fromJson(e as Map<String, dynamic>))
+            .toList();
 
-  Map<String, dynamic> toJson() {
-    final _data = <String, dynamic>{};
-    _data['statusCode'] = statusCode;
-    _data['success'] = success;
-    _data['messages'] = messages;
-    _data['data'] = data.map((e) => e.toJson()).toList();
-    return _data;
-  }
+  Map<String, dynamic> toJson() => {
+        'statusCode': statusCode,
+        'success': success,
+        'messages': messages,
+        'data': data?.map((e) => e.toJson()).toList()
+      };
 }
 
 class Data {
+  final int? id;
+  final String? title;
+  final String? filename;
+  final String? mimetype;
+  final String? cattype;
+  final dynamic parentid;
+  final List<dynamic>? subcat;
+
   Data({
-    required this.id,
-    required this.title,
-    required this.filename,
-    required this.mimetype,
-    required this.directcalling,
+    this.id,
+    this.title,
+    this.filename,
+    this.mimetype,
+    this.cattype,
     this.parentid,
-    required this.subcat,
+    this.subcat,
   });
-  late final int id;
-  late final String title;
-  late final String filename;
-  late final String mimetype;
-  late final String directcalling;
-  late final Null parentid;
-  late final List<Subcat> subcat;
 
-  Data.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    title = json['title'];
-    filename = json['filename'];
-    mimetype = json['mimetype'];
-    directcalling = json['cattype'];
-    parentid = null;
-    subcat = List.from(json['subcat']).map((e) => Subcat.fromJson(e)).toList();
-  }
+  Data.fromJson(Map<String, dynamic> json)
+      : id = json['id'] as int?,
+        title = json['title'] as String?,
+        filename = json['filename'] as String?,
+        mimetype = json['mimetype'] as String?,
+        cattype = json['cattype'] as String?,
+        parentid = json['parentid'],
+        subcat = json['subcat'] as List?;
 
-  Map<String, dynamic> toJson() {
-    final _data = <String, dynamic>{};
-    _data['id'] = id;
-    _data['title'] = title;
-    _data['filename'] = filename;
-    _data['mimetype'] = mimetype;
-    _data['directcalling'] = directcalling;
-    _data['parentid'] = parentid;
-    _data['subcat'] = subcat.map((e) => e.toJson()).toList();
-    return _data;
-  }
-}
-
-class Subcat {
-  Subcat({
-    required this.id,
-    required this.title,
-    required this.filename,
-    required this.mimetype,
-    required this.directcalling,
-    required this.parentid,
-    required this.subcat,
-  });
-  late final int id;
-  late final String title;
-  late final String filename;
-  late final String mimetype;
-  late final String directcalling;
-  late final int parentid;
-  late final List<dynamic> subcat;
-
-  Subcat.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    title = json['title'];
-    filename = json['filename'];
-    mimetype = json['mimetype'];
-    directcalling = json['cattype'];
-    parentid = json['parentid'];
-    subcat = List.castFrom<dynamic, dynamic>(json['subcat']);
-  }
-
-  Map<String, dynamic> toJson() {
-    final _data = <String, dynamic>{};
-    _data['id'] = id;
-    _data['title'] = title;
-    _data['filename'] = filename;
-    _data['mimetype'] = mimetype;
-    _data['directcalling'] = directcalling;
-    _data['parentid'] = parentid;
-    _data['subcat'] = subcat;
-    return _data;
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'filename': filename,
+        'mimetype': mimetype,
+        'cattype': cattype,
+        'parentid': parentid,
+        'subcat': subcat
+      };
 }

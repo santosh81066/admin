@@ -10,11 +10,11 @@ class PurohitApi {
   final String userIdCard = '/filename/';
   final String updateUser = '/userid/';
   final String deletePackage = '/package/';
-  final String register = '/catid/';
+  final String register = '/catId/';
   final String updatecat = '/updatecatid/';
   final String updateimage = '/getcatimage/';
   final String userid = '/userid/';
-  final String getLocation = '/getlocation';
-  final String insertLocation = '/insertlocation';
-  final String deleteLocation = '/deletelocation';
+  final String location = '/location';
+  final String horoscope = '/horoscope';
+  final String add = '/adds';
 }

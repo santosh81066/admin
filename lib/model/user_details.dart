@@ -1,71 +1,105 @@
-// import 'dart:convert';
-// import 'package:http/http.dart' as http;
-// import 'package:flutter/material.dart';
-// import 'package:http/retry.dart';
-// import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
-// import '../controller/auth.dart';
-// import '../utlis/purohitapi.dart';
+class UsersDetails {
+  final int? statusCode;
+  final bool? success;
+  final List<String>? messages;
+  final List<Data>? data;
 
-// class UserDetails extends ChangeNotifier {
-//   final String? userId;
-//   final String? mobileno;
-//   bool? userStatus;
-//   final String? adhar;
-//   final String? pan;
-//   final String? adharno;
-//   final String? panno;
-//   UserDetails(
-//       {this.userId,
-//       this.mobileno,
-//       this.userStatus = false,
-//       this.adhar,
-//       this.pan,
-//       this.adharno,
-//       this.panno});
-//   void _setUsrStatusValue(bool newValue) {
-//     userStatus = newValue;
-//     notifyListeners();
-//   }
+  UsersDetails({
+    this.statusCode,
+    this.success,
+    this.messages,
+    this.data,
+  });
 
-//   Future<void> toggleUserStatus(
-//       String token, BuildContext context, bool usrstatus) async {
-//     final oldStatus = userStatus;
-//     userStatus = usrstatus;
-//     notifyListeners();
-//     final url = '${PurohitApi().baseUrl}${PurohitApi().updateUser}/$userId';
-//     try {
-//       final client = RetryClient(
-//         http.Client(),
-//         retries: 4,
-//         when: (response) {
-//           return response.statusCode == 401 ? true : false;
-//         },
-//         onRetry: (req, res, retryCount) async {
-//           //print('retry started $token');
+  UsersDetails.fromJson(Map<String, dynamic> json)
+      : statusCode = json['statusCode'] as int?,
+        success = json['success'] as bool?,
+        messages = (json['messages'] as List?)
+            ?.map((dynamic e) => e as String)
+            .toList(),
+        data = (json['data'] as List?)
+            ?.map((dynamic e) => Data.fromJson(e as Map<String, dynamic>))
+            .toList();
 
-//           if (retryCount == 0 && res?.statusCode == 401) {
-//             var accessToken = await Provider.of<Auth>(context, listen: false)
-//                 .restoreAccessToken();
-//             // Only this block can run (once) until done
+  Map<String, dynamic> toJson() => {
+        'statusCode': statusCode,
+        'success': success,
+        'messages': messages,
+        'data': data?.map((e) => e.toJson()).toList()
+      };
+}
 
-//             req.headers['Authorization'] = accessToken;
-//           }
-//         },
-//       );
-//       var response = await client.patch(Uri.parse(url),
-//           headers: {'Authorization': token}, body: {"userstatus": userStatus});
+class Data {
+  final int? id;
+  final String? username;
+  final int? mobileno;
+  final String? profilepic;
+  final dynamic adhar;
+  final dynamic languages;
+  final dynamic expirience;
+  final String? role;
+  final int? userstatus;
+  final dynamic isonline;
+  final String? imageurl;
+  final dynamic adharno;
+  final dynamic location;
+  final String? dateofbirth;
+  final String? placeofbirth;
+  XFile? adharpic;
+  XFile? profiledp;
+  Data(
+      {this.id,
+      this.username,
+      this.mobileno,
+      this.profilepic,
+      this.adhar,
+      this.languages,
+      this.expirience,
+      this.role,
+      this.userstatus,
+      this.isonline,
+      this.imageurl,
+      this.adharno,
+      this.location,
+      this.dateofbirth,
+      this.placeofbirth,
+      this.adharpic,
+      this.profiledp});
 
-//       var userstatus = json.decode(response.body);
-//       if (response.statusCode >= 400) {
-//         _setUsrStatusValue(oldStatus!);
-//       }
-//       print(userstatus);
+  Data.fromJson(Map<String, dynamic> json)
+      : id = json['id'] as int?,
+        username = json['username'] as String?,
+        mobileno = json['mobileno'] as int?,
+        profilepic = json['profilepic'] as String?,
+        adhar = json['adhar'],
+        languages = json['languages'],
+        expirience = json['expirience'],
+        role = json['role'] as String?,
+        userstatus = json['userstatus'] as int?,
+        isonline = json['isonline'],
+        imageurl = json['imageurl'] as String?,
+        adharno = json['adharno'],
+        location = json['location'],
+        dateofbirth = json['dateofbirth'] as String?,
+        placeofbirth = json['placeofbirth'] as String?;
 
-//       //print(users);
-//       notifyListeners();
-//     } catch (e) {
-//       print(e);
-//     }
-//   }
-// }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'username': username,
+        'mobileno': mobileno,
+        'profilepic': profilepic,
+        'adhar': adhar,
+        'languages': languages,
+        'expirience': expirience,
+        'role': role,
+        'userstatus': userstatus,
+        'isonline': isonline,
+        'imageurl': imageurl,
+        'adharno': adharno,
+        'location': location,
+        'dateofbirth': dateofbirth,
+        'placeofbirth': placeofbirth
+      };
+}

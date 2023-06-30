@@ -141,14 +141,14 @@ class _CreatePackageState extends State<CreatePackage> {
                   elevation: 16,
                   isExpanded: true,
                   hint: Text('please select type of catogory '),
-                  items: value.categorieModel!.data.map((v) {
+                  items: value.categorieModel!.data!.map((v) {
                     return DropdownMenuItem<String>(
                         onTap: () {
                           imageid = v.id;
                           print(v.title);
                         },
                         value: v.title,
-                        child: Text(v.title));
+                        child: Text(v.title!));
                   }).toList(),
                   onChanged: (val) {
                     value.dropdownSelectedValue(val!);

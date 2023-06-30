@@ -39,11 +39,7 @@ class Category with ChangeNotifier {
   }
 
   Data findById(int id) {
-    return categories!.data.firstWhere((cat) => cat.id == id);
-  }
-
-  Subcat findSubById(Data id) {
-    return id.subcat.firstWhere((cat) => cat.id == subcat);
+    return categories!.data!.firstWhere((cat) => cat.id == id);
   }
 
   Future<void> getCatogories(BuildContext cont) async {

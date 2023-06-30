@@ -91,7 +91,7 @@ class _EditCatState extends State<EditCat> {
     List<Data> categories = [];
 
     categories =
-        apicalls.categorieModel!.data.where((cat) => cat.id == catId).toList();
+        apicalls.categorieModel!.data!.where((cat) => cat.id == catId).toList();
 
     print(categories);
     int id = catId;
@@ -101,7 +101,7 @@ class _EditCatState extends State<EditCat> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(categories[0].title),
+        title: Text(categories[0].title!),
         actions: [
           IconButton(
             icon: Icon(Icons.save),
@@ -125,25 +125,14 @@ class _EditCatState extends State<EditCat> {
                           elevation: 16,
                           isExpanded: true,
                           hint: Text('please select sub category'),
-                          items: categories[0].subcat.map((v) {
+                          items: categories[0].subcat!.map((v) {
                             return DropdownMenuItem<String>(
                                 onTap: () {
-                                  subcategory.subcat = v.id;
-                                  // value.subcat = v.id;
-                                  // _editedSubCategory = Provider.of<Category>(
-                                  //         context,
-                                  //         listen: false)
-                                  //     .findSubById(loadedProduct);
-                                  // _initValues = {
-                                  //   'title': v.title!,
-                                  //   'filename': v.filename!,
-                                  //   'mimetype': v.mimetype!,
-                                  //   'directcalling': v.directcalling.toString()
-                                  // };
-                                  print(v.title);
+                                  subcategory.subcat = v['id'];
+                              
                                 },
-                                value: v.title,
-                                child: Text(v.title));
+                                value: v['title'],
+                                child: Text(v['title']));
                           }).toList(),
                           onChanged: (val) {
                             //print(cat.text);

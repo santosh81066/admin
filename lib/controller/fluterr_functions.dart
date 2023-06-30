@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
 
 class FlutterFunctions extends ChangeNotifier {
   XFile? imageFile;
@@ -12,7 +15,7 @@ class FlutterFunctions extends ChangeNotifier {
   final ImagePicker _picker = ImagePicker();
   String _selectedValue = 'calling';
   String get selectedValue => _selectedValue;
-
+  String? pdfFilePath;
   void setSelectedValue(String value) {
     _selectedValue = value;
     notifyListeners();
@@ -57,9 +60,10 @@ class FlutterFunctions extends ChangeNotifier {
   Future<void> onImageButtonPress(ImageSource source,
       {BuildContext? context}) async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
+      final XFile? pickedFile =
+          await _picker.pickImage(source: source, imageQuality: 30);
       imageFile = pickedFile;
-      imageFileList!.add(pickedFile!);
+
       notifyListeners();
     } catch (e) {
       print("$e");
@@ -68,11 +72,25 @@ class FlutterFunctions extends ChangeNotifier {
 
   Future<void> addUserId(ImageSource source, {BuildContext? context}) async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
+      final XFile? pickedFile =
+          await _picker.pickImage(source: source, imageQuality: 30);
       imageFileList!.add(pickedFile!);
       notifyListeners();
     } catch (e) {
       print("$e");
     }
+  }
+
+  Future<void> pickPDFFileFromGallery() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+    if (result != null) {
+      pdfFilePath = result.files.single.path!;
+    }
+
+    print(pdfFilePath);
+    notifyListeners();
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:purohithulu_admin/model/categories.dart';
 import 'package:purohithulu_admin/widgets/text_widget.dart';
 
 import '../controller/apicalls.dart';
@@ -12,7 +13,7 @@ import 'button.dart';
 import 'insertadhar.dart';
 import 'insertprofile.dart';
 
-class AddUser extends StatelessWidget {
+class AddUser extends StatefulWidget {
   const AddUser({
     Key? key,
     this.mobileNo,
@@ -43,17 +44,37 @@ class AddUser extends StatelessWidget {
   final String? buttonName;
 
   final GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey;
+
+  @override
+  State<AddUser> createState() => _AddUserState();
+}
+
+class _AddUserState extends State<AddUser> {
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+
+    widget.mobileNo!.dispose();
+    widget.userName!.dispose();
+    widget.languages!.dispose();
+    widget.adhar!.dispose();
+    widget.profilepic!.dispose();
+    widget.description!.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    
     var flutterFunctions = Provider.of<FlutterFunctions>(context);
     var apicalls = Provider.of<ApiCalls>(context, listen: false);
     final ScaffoldMessengerState scaffoldKey =
-        scaffoldMessengerKey!.currentState as ScaffoldMessengerState;
+        widget.scaffoldMessengerKey!.currentState as ScaffoldMessengerState;
     List<List<TextEditingController>> prices = List.generate(
-      apicalls.categorieModel!.data.length,
+      apicalls.categorieModel!.data!.length,
       (mainindex) {
         var subcatCount =
-            apicalls.categorieModel!.data[mainindex].subcat.length;
+            apicalls.categorieModel!.data![mainindex].subcat!.length;
         return List.generate(
           subcatCount + 1, // add one for the main category price
           (subindex) => TextEditingController(),
@@ -62,8 +83,13 @@ class AddUser extends StatelessWidget {
     );
     List<TextEditingController> flattenedPrices =
         prices.expand((prices) => prices).toList();
-    String? errorMessage =
-        apicalls.validateForm(flattenedPrices, apicalls.selectedCatId);
+    // String? errorMessage =
+    //     apicalls.validateForm(flattenedPrices, apicalls.selectedCatId);
+    List<Data> filteredCategories =
+        apicalls.categorieModel!.data!.where((category) {
+      // return true if the category meets the filter condition, false otherwise
+      return category.cattype != "e"; // replace with your own filter condition
+    }).toList();
 
     return Scrollbar(
       thickness: 4,
@@ -80,13 +106,13 @@ class AddUser extends StatelessWidget {
                 child: TextFormField(
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),
-                      labelText: mobileHint,
+                      labelText: widget.mobileHint,
                       labelStyle: TextStyle(color: Colors.grey),
                       focusedBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.grey),
                       ),
                     ),
-                    controller: mobileNo!,
+                    controller: widget.mobileNo!,
                     validator: (validator) {
                       final RegExp phoneRegex = RegExp(r'^\+?\d{10,12}$');
                       if (!phoneRegex.hasMatch(validator!)) {
@@ -104,13 +130,13 @@ class AddUser extends StatelessWidget {
                 child: TextFormField(
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),
-                      labelText: userNameHint,
+                      labelText: widget.userNameHint,
                       labelStyle: TextStyle(color: Colors.grey),
                       focusedBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.grey),
                       ),
                     ),
-                    controller: userName!,
+                    controller: widget.userName!,
                     validator: (validator) {
                       if (validator == null || validator.isEmpty) {
                         return "please enter the username";
@@ -124,13 +150,13 @@ class AddUser extends StatelessWidget {
                 child: TextFormField(
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),
-                      labelText: languagesHint,
+                      labelText: widget.languagesHint,
                       labelStyle: TextStyle(color: Colors.grey),
                       focusedBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.grey),
                       ),
                     ),
-                    controller: languages!,
+                    controller: widget.languages!,
                     validator: (validator) {
                       if (validator == null || validator.isEmpty) {
                         return "please enter languages";
@@ -183,7 +209,7 @@ class AddUser extends StatelessWidget {
                   ),
                   maxLines: 3,
                   keyboardType: TextInputType.multiline,
-                  controller: description,
+                  controller: widget.description,
                   validator: (validator) {
                     if (validator == null || validator.isEmpty) {
                       return "please enter expirience";
@@ -240,8 +266,10 @@ class AddUser extends StatelessWidget {
                             color: Colors.yellowAccent,
                           );
                         },
-                        itemCount: value.categorieModel!.data.length,
+                        itemCount: filteredCategories.length,
                         itemBuilder: (cont, mainindex) {
+                          print(
+                              "Rebuilding sub-widget for subindex: $mainindex");
                           //print("$price:$index");
                           //price.add(TextEditingController());
                           TextEditingController controller1 =
@@ -249,17 +277,19 @@ class AddUser extends StatelessWidget {
                                   ? prices[mainindex][0]
                                   : TextEditingController();
 
-                          return value.categorieModel!.data[mainindex].subcat
+                          return value.categorieModel!.data![mainindex].subcat!
                                   .isNotEmpty
                               ? ExpansionTile(
                                   title: Text(value
-                                      .categorieModel!.data[mainindex].title),
+                                      .categorieModel!.data![mainindex].title!),
                                   children: [
                                     ListView.builder(
                                       shrinkWrap: true,
                                       physics:
                                           const NeverScrollableScrollPhysics(),
                                       itemBuilder: (contex, subindex) {
+                                        print(
+                                            "Rebuilding sub-widget for subindex: $subindex");
                                         TextEditingController controller =
                                             prices[mainindex][subindex];
                                         //print("$price:$index");
@@ -269,24 +299,21 @@ class AddUser extends StatelessWidget {
                                               value: value.selectedCatId
                                                   .contains(value
                                                       .categorieModel!
-                                                      .data[mainindex]
-                                                      .subcat[subindex]
-                                                      .id),
+                                                      .data![mainindex]
+                                                      .subcat![subindex]['id']),
                                               onChanged: (val) {
                                                 value.selectedCat(value
                                                     .categorieModel!
-                                                    .data[mainindex]
-                                                    .subcat[subindex]
-                                                    .id);
+                                                    .data![mainindex]
+                                                    .subcat![subindex]['id']);
                                                 print(value.selectedCatId);
 
                                                 //value.updateId(subindex);
                                               },
                                               title: Text(value
                                                   .categorieModel!
-                                                  .data[mainindex]
-                                                  .subcat[subindex]
-                                                  .title),
+                                                  .data![mainindex]
+                                                  .subcat![subindex]['title']),
                                             ),
                                             TextFormField(
                                                 validator: (validator) {
@@ -294,10 +321,10 @@ class AddUser extends StatelessWidget {
                                                       validator.isEmpty) {
                                                     if (value.selectedCatId
                                                         .contains(value
-                                                            .categorieModel!
-                                                            .data[mainindex]
-                                                            .subcat[subindex]
-                                                            .id)) {
+                                                                .categorieModel!
+                                                                .data![mainindex]
+                                                                .subcat![
+                                                            subindex]['id'])) {
                                                       return "please enter the price";
                                                     }
                                                   }
@@ -305,7 +332,7 @@ class AddUser extends StatelessWidget {
                                                 },
                                                 decoration: InputDecoration(
                                                   hintText:
-                                                      "please enter ${value.categorieModel!.data[mainindex].subcat[subindex].title} price",
+                                                      "please enter ${value.categorieModel!.data![mainindex].subcat![subindex]['title']} price",
                                                   labelStyle: TextStyle(
                                                       color: Colors.grey),
                                                   focusedBorder:
@@ -320,7 +347,7 @@ class AddUser extends StatelessWidget {
                                         );
                                       },
                                       itemCount: apicalls.categorieModel!
-                                          .data[mainindex].subcat.length,
+                                          .data![mainindex].subcat!.length,
                                     )
                                   ],
                                 )
@@ -328,17 +355,17 @@ class AddUser extends StatelessWidget {
                                   children: [
                                     CheckboxListTile(
                                       value: value.selectedCatId.contains(value
-                                          .categorieModel!.data[mainindex].id),
+                                          .categorieModel!.data![mainindex].id),
                                       onChanged: (val) {
                                         value.selectedCat(value.categorieModel!
-                                            .data[mainindex].id);
+                                            .data![mainindex].id!);
                                         print(
                                             "from on change:${value.selectedCatId}");
 
                                         value.updateId(mainindex);
                                       },
                                       title: Text(value.categorieModel!
-                                          .data[mainindex].title),
+                                          .data![mainindex].title!),
                                     ),
                                     TextFormField(
                                       validator: (validator) {
@@ -346,7 +373,7 @@ class AddUser extends StatelessWidget {
                                             validator.isEmpty) {
                                           if (value.selectedCatId.contains(value
                                               .categorieModel!
-                                              .data[mainindex]
+                                              .data![mainindex]
                                               .id)) {
                                             return "please enter the price";
                                           }
@@ -355,7 +382,7 @@ class AddUser extends StatelessWidget {
                                       },
                                       decoration: InputDecoration(
                                         hintText:
-                                            "please enter ${value.categorieModel!.data[mainindex].title} price",
+                                            "please enter ${value.categorieModel!.data![mainindex].title} price",
                                         labelStyle:
                                             TextStyle(color: Colors.grey),
                                         focusedBorder: const OutlineInputBorder(
@@ -382,12 +409,12 @@ class AddUser extends StatelessWidget {
                           onTap: () async {
                             if (Form.of(context).validate()) {
                               await value.register(
-                                "+91${mobileNo!.text.trim()}",
-                                adhar!.text.trim(),
-                                profilepic!.text.trim(),
-                                description!.text.trim(),
-                                languages!.text.trim(),
-                                userName!.text.trim(),
+                                "+91${widget.mobileNo!.text.trim()}",
+                                widget.adhar!.text.trim(),
+                                widget.profilepic!.text.trim(),
+                                widget.description!.text.trim(),
+                                widget.languages!.text.trim(),
+                                widget.userName!.text.trim(),
                                 context,
                                 prices,
                               );
@@ -398,7 +425,7 @@ class AddUser extends StatelessWidget {
                               ));
                             }
                           },
-                          buttonname: buttonName,
+                          buttonname: widget.buttonName,
                         )
                       : const CircularProgressIndicator(
                           backgroundColor: Colors.yellow,
