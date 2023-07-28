@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:purohithulu_admin/controller/auth.dart';
@@ -10,9 +10,9 @@ import 'package:purohithulu_admin/model/location.dart';
 import 'package:purohithulu_admin/model/user_details.dart' as userdetails;
 import 'package:purohithulu_admin/utlis/purohitapi.dart';
 import 'package:flutter/foundation.dart';
-import 'package:purohithulu_admin/view/users.dart';
+
 //import 'package:purohithulu_admin/view/location.dart';
-import 'package:purohithulu_admin/widgets/insertcategory.dart';
+
 import 'package:purohithulu_admin/controller/fluterr_functions.dart';
 import 'package:provider/provider.dart';
 import 'package:http/retry.dart';
@@ -452,8 +452,9 @@ class ApiCalls extends ChangeNotifier {
     }
   }
 
-  Future<void> deletePackage(int packageId, BuildContext context) async {
+  Future<int> deletePackage(int packageId, BuildContext context) async {
     final url = '${PurohitApi().baseUrl}${PurohitApi().packageId}$packageId';
+    int statuscode = 0;
     try {
       final client = RetryClient(
         http.Client(),
@@ -484,11 +485,12 @@ class ApiCalls extends ChangeNotifier {
           Future.delayed(Duration.zero)
               .then((value) => messages = userDetails['messages'].toString());
       }
-
+      statuscode = response.statusCode;
       notifyListeners();
     } catch (e) {
       print(e);
     }
+    return statuscode;
   }
 
   Future register(

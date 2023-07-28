@@ -1,17 +1,15 @@
 import 'dart:io';
-import 'package:http/http.dart' as http;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:purohithulu_admin/controller/auth.dart';
-import 'package:purohithulu_admin/model/expansionitem.dart';
+
 import 'package:purohithulu_admin/model/user_details.dart';
 import 'package:purohithulu_admin/widgets/app_drawer.dart';
 import 'package:purohithulu_admin/widgets/userlist.dart';
 
 import '../controller/apicalls.dart';
-import '../utlis/purohitapi.dart';
 
-import '../widgets/adduser.dart';
 import '../widgets/button.dart';
 import '../widgets/text_widget.dart';
 
@@ -129,7 +127,7 @@ class _UsersState extends State<Users> {
         ],
       ),
       drawer: const AppDrawer(),
-      body: apicalls.userDetails != null
+      body: apicalls.userDetails != null && apicalls.userDetails!.data != null
           ? Consumer<ApiCalls>(
               builder: (con, value, child) {
                 return ListView.builder(
@@ -320,6 +318,7 @@ class _UsersState extends State<Users> {
                         auth.restoreAccessToken();
                       }
                     }
+                    return null;
                   },
                 );
               },

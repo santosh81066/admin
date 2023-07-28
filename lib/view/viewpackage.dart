@@ -75,8 +75,13 @@ class _ViewPackageState extends State<ViewPackage> {
                     );
                   },
                   onDismissed: (direction) {
-                    apiCalls.deletePackage(
-                        apiCalls.packages![index]['id'], context);
+                    apiCalls
+                        .deletePackage(apiCalls.packages![index]['id'], context)
+                        .then((value) {
+                      if (value == 201) {
+                        apiCalls.packages!.removeAt(index);
+                      }
+                    });
                   },
                   key: UniqueKey(),
                   child: Container(
