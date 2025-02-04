@@ -1,5 +1,5 @@
 class PurohitApi {
-  final String baseUrl = 'https://vedicpurohit.co.in';
+  final String baseUrl = 'https://talk2purohit.com';
   final String login = '/adminlogin';
   final String getcategory = '/insertcategory';
   final String insertcategory = '/parentid/';

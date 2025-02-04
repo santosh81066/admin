@@ -35,7 +35,7 @@ class _ViewPackageState extends State<ViewPackage> {
               itemBuilder: (context, index) {
                 return Dismissible(
                   background: Container(
-                    color: Theme.of(context).errorColor,
+                    //color: Theme.of(context).errorColor,
                     alignment: Alignment.centerRight,
                     padding: EdgeInsets.only(right: 20),
                     margin: const EdgeInsets.symmetric(
